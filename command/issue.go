@@ -32,6 +32,10 @@ func init() {
 		"Supply a body. Will prompt for one otherwise.")
 	issueCreateCmd.Flags().BoolP("web", "w", false, "Open the browser to create an issue")
 
+	issueCmd.AddCommand(issueCloseCmd)
+
+	issueCmd.AddCommand(issueReopenCmd)
+
 	issueCmd.AddCommand(issueListCmd)
 	issueListCmd.Flags().StringP("assignee", "a", "", "Filter by assignee")
 	issueListCmd.Flags().StringSliceP("label", "l", nil, "Filter by label")
@@ -55,6 +59,28 @@ var issueCreateCmd = &cobra.Command{
 	Use:   "create",
 	Short: "Create a new issue",
 	RunE:  issueCreate,
+}
+var issueCloseCmd = &cobra.Command{
+	Use: "close {<number> | <url>}",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return FlagError{errors.New("issue number or URL required as argument")}
+		}
+		return nil
+	},
+	Short: "Close an issue",
+	RunE:  issueClose,
+}
+var issueReopenCmd = &cobra.Command{
+	Use: "reopen {<number> | <url>}",
+	Args: func(cmd *cobra.Command, args []string) error {
+		if len(args) < 1 {
+			return FlagError{errors.New("issue number or URL required as argument")}
+		}
+		return nil
+	},
+	Short: "Reopen an issue",
+	RunE:  issueReopen,
 }
 var issueListCmd = &cobra.Command{
 	Use:   "list",
