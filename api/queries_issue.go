@@ -32,10 +32,22 @@ type Issue struct {
 		Login string
 	}
 
+	TimelineItems struct {
+		Nodes []TimelineNodes
+	}
+
 	Labels struct {
 		Nodes      []IssueLabel
 		TotalCount int
 	}
+}
+
+type TimelineNodes struct {
+	TypeName string `json:"__typename"`
+	Actor    struct {
+		Login string
+	}
+	CreatedAt time.Time
 }
 
 type IssueLabel struct {
@@ -279,6 +291,35 @@ func IssueByNumber(client *Client, repo ghrepo.Interface, number int) (*Issue, e
 				body
 				author {
 					login
+				}
+				timelineItems(last: 1, itemTypes:[CLOSED_EVENT, REOPENED_EVENT, LOCKED_EVENT, UNLOCKED_EVENT]){
+					nodes{
+						__typename
+						...on ClosedEvent{
+							actor{
+								login
+							}
+							createdAt
+						}
+						...on ReopenedEvent{
+							actor{
+								login
+							}
+							createdAt
+						}
+						...on LockedEvent{
+							actor{
+								login
+							}
+							createdAt
+						}
+						...on UnlockedEvent{
+							actor{
+								login
+							}
+							createdAt
+						}
+					}
 				}
 				comments {
 					totalCount
