@@ -93,6 +93,100 @@ func IssueCreate(client *Client, repo *Repository, params map[string]interface{}
 	return &result.CreateIssue.Issue, nil
 }
 
+func IssueClose(client *Client, closeIssue *Issue) (*Issue, error) {
+	query := `
+	mutation CloseIssue($input: CloseIssueInput!){
+		closeIssue(input: $input){
+			issue {
+				id
+				state
+				title
+				body
+				author {
+					login
+				}
+				comments {
+					totalCount
+				}
+				labels(first: 3) {
+					nodes {
+						name
+					}
+				}
+				number
+				url
+			}
+		}
+	}`
+
+	inputParams := map[string]interface{}{
+		"issueId": closeIssue.ID,
+	}
+	variables := map[string]interface{}{
+		"input": inputParams,
+	}
+
+	result := struct {
+		CloseIssue struct {
+			Issue Issue
+		}
+	}{}
+
+	err := client.GraphQL(query, variables, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.CloseIssue.Issue, nil
+}
+
+func IssueReopen(client *Client, reopenIssue *Issue) (*Issue, error) {
+	query := `
+	mutation ReopenIssue($input: ReopenIssueInput!){
+		reopenIssue(input: $input){
+			issue {
+				id
+				state
+				title
+				body
+				author {
+					login
+				}
+				comments {
+					totalCount
+				}
+				labels(first: 3) {
+					nodes {
+						name
+					}
+				}
+				number
+				url
+			}
+		}
+	}`
+
+	inputParams := map[string]interface{}{
+		"issueId": reopenIssue.ID,
+	}
+	variables := map[string]interface{}{
+		"input": inputParams,
+	}
+
+	result := struct {
+		ReopenIssue struct {
+			Issue Issue
+		}
+	}{}
+
+	err := client.GraphQL(query, variables, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result.ReopenIssue.Issue, nil
+}
+
 func IssueStatus(client *Client, repo ghrepo.Interface, currentUsername string) (*IssuesPayload, error) {
 	type response struct {
 		Repository struct {
