@@ -434,6 +434,68 @@ func issueCreate(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func issueClose(cmd *cobra.Command, args []string) error {
+	ctx := contextForCommand(cmd)
+
+	apiClient, err := apiClientForContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	baseRepo, err := determineBaseRepo(cmd, ctx)
+	if err != nil {
+		return err
+	}
+
+	closeIssue, err := issueFromArg(apiClient, baseRepo, args[0])
+	if err != nil {
+		return err
+	}
+
+	if closeIssue.State == "CLOSED" {
+		return fmt.Errorf("The issue #%v is already closed.", closeIssue.Number)
+	}
+
+	closedIssue, err := api.IssueClose(apiClient, closeIssue)
+	if err != nil {
+		return err
+	}
+
+	out := colorableOut(cmd)
+	return printIssuePreview(out, closedIssue)
+}
+
+func issueReopen(cmd *cobra.Command, args []string) error {
+	ctx := contextForCommand(cmd)
+
+	apiClient, err := apiClientForContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	baseRepo, err := determineBaseRepo(cmd, ctx)
+	if err != nil {
+		return err
+	}
+
+	reopenIssue, err := issueFromArg(apiClient, baseRepo, args[0])
+	if err != nil {
+		return err
+	}
+
+	if reopenIssue.State == "OPEN" {
+		return fmt.Errorf("The issue #%v is already opened.", reopenIssue.Number)
+	}
+
+	reopenedIssue, err := api.IssueReopen(apiClient, reopenIssue)
+	if err != nil {
+		return err
+	}
+
+	out := colorableOut(cmd)
+	return printIssuePreview(out, reopenedIssue)
+}
+
 func printIssues(w io.Writer, prefix string, totalCount int, issues []api.Issue) {
 	for _, issue := range issues {
 		number := utils.Green("#" + strconv.Itoa(issue.Number))
