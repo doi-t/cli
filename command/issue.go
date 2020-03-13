@@ -255,15 +255,12 @@ func printIssuePreview(out io.Writer, issue *api.Issue) error {
 	}
 
 	var actor, eventTypeName string
-	if issue.State == "OPEN" && len(issue.TimelineItems.Nodes) == 0 {
+	if issue.State == "OPEN" && issue.LastEvent == nil {
 		actor = issue.Author.Login
 		eventTypeName = issue.State
 	} else {
-		// Take the last issue event
-		for _, node := range issue.TimelineItems.Nodes {
-			actor = node.Actor.Login
-			eventTypeName = node.TypeName
-		}
+		actor = issue.LastEvent.Actor.Login
+		eventTypeName = issue.LastEvent.TypeName
 	}
 
 	fmt.Fprintln(out, utils.Bold(issue.Title))

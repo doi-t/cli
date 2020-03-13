@@ -33,16 +33,18 @@ type Issue struct {
 	}
 
 	TimelineItems struct {
-		Nodes []TimelineNodes
+		Nodes []TimelineNode
 	}
 
 	Labels struct {
 		Nodes      []IssueLabel
 		TotalCount int
 	}
+
+	LastEvent *TimelineNode
 }
 
-type TimelineNodes struct {
+type TimelineNode struct {
 	TypeName string `json:"__typename"`
 	Actor    struct {
 		Login string
@@ -351,5 +353,12 @@ func IssueByNumber(client *Client, repo ghrepo.Interface, number int) (*Issue, e
 		return nil, fmt.Errorf("the '%s' repository has disabled issues", ghrepo.FullName(repo))
 	}
 
-	return &resp.Repository.Issue, nil
+	issue := resp.Repository.Issue
+	if len(issue.TimelineItems.Nodes) == 1 {
+		for _, node := range issue.TimelineItems.Nodes {
+			issue.LastEvent = &node
+		}
+	}
+
+	return &issue, nil
 }
