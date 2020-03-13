@@ -274,6 +274,7 @@ func IssueByNumber(client *Client, repo ghrepo.Interface, number int) (*Issue, e
 		repository(owner: $owner, name: $repo) {
 			hasIssuesEnabled
 			issue(number: $issue_number) {
+				state
 				title
 				body
 				author {
