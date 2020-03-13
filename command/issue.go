@@ -254,10 +254,23 @@ func printIssuePreview(out io.Writer, issue *api.Issue) error {
 		coloredLabels = utils.Gray(fmt.Sprintf("(%s)", coloredLabels))
 	}
 
+	var actor, eventTypeName string
+	if issue.State == "OPEN" && len(issue.TimelineItems.Nodes) == 0 {
+		actor = issue.Author.Login
+		eventTypeName = issue.State
+	} else {
+		// Take the last issue event
+		for _, node := range issue.TimelineItems.Nodes {
+			actor = node.Actor.Login
+			eventTypeName = node.TypeName
+		}
+	}
+
 	fmt.Fprintln(out, utils.Bold(issue.Title))
 	fmt.Fprintln(out, utils.Gray(fmt.Sprintf(
-		"opened by %s. %s. %s",
-		issue.Author.Login,
+		"%s by %s. %s. %s",
+		issueStateMessage(eventTypeName),
+		actor,
 		utils.Pluralize(issue.Comments.TotalCount, "comment"),
 		coloredLabels,
 	)))
@@ -274,6 +287,23 @@ func printIssuePreview(out io.Writer, issue *api.Issue) error {
 
 	fmt.Fprintf(out, utils.Gray("View this issue on GitHub: %s\n"), issue.URL)
 	return nil
+}
+
+func issueStateMessage(state string) string {
+	switch state {
+	case "OPEN":
+		return "Opened"
+	case "ClosedEvent":
+		return "Closed"
+	case "ReopenedEvent":
+		return "Reopened"
+	case "LockedEvent":
+		return "Locked"
+	case "UnlockedEvent":
+		return "Unlocked"
+	default:
+		return "Unknown Issue State"
+	}
 }
 
 var issueURLRE = regexp.MustCompile(`^https://github\.com/([^/]+)/([^/]+)/issues/(\d+)`)
